@@ -22,7 +22,7 @@
 #ifndef CORTO_SHELLENGINE_H_
 #define CORTO_SHELLENGINE_H_
 
-#include "corto/corto.h"
+#include <corto/corto.h>
 
 typedef void (*corto_printCallback) (const char *cmd);
 typedef int (*corto_commandCallback) (int argc, const char* argv[], char *cmd);
