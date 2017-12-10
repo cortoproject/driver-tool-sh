@@ -1,0 +1,11 @@
+{
+    "id": "driver/tool/sh",
+    "type": "package",
+    "value": {
+        "author": "Sander Mertens",
+        "description": "Corto shell",
+        "version": "1.0.0",
+        "managed": false,
+        "use": ["corto"]
+    }
+}

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017 the corto developers
+/* Copyright (c) 2010-2018 the corto developers
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -332,7 +332,7 @@ static corto_bool corto_shellAutoExpand(
      * a space between the first argument */
     if (!items) {
         corto_shellEngine_cmdAppend(" ", 0);
-    } else if (corto_ll_size(items)) {
+    } else if (corto_ll_count(items)) {
         corto_id append;
         append[0] = '\0';
         int first = 0;
@@ -347,7 +347,7 @@ static corto_bool corto_shellAutoExpand(
             arg = "";
         }
 
-        if (corto_ll_size(items) >= 2) {
+        if (corto_ll_count(items) >= 2) {
             corto_string prev = NULL, str = NULL;
             corto_shellEngine_keepInput();
             result = TRUE;

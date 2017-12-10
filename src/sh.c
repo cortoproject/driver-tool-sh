@@ -2,7 +2,7 @@
 
 #include <driver/tool/sh/sh.h>
 
-/* Copyright (c) 2010-2017 the corto developers
+/* Copyright (c) 2010-2018 the corto developers
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 #include "shengine.h"
 
+#define FIND(parent, id) corto(parent, id, NULL, NULL, NULL, NULL, -1, 0)
 #define CXSH_CMD_MAX (1024)
 
 #define CXSH_COL_NAME     (46)
@@ -182,11 +183,11 @@ static int cxsh_printRow(corto_string parent, corto_string id, corto_string type
     corto_id fullId, searchId;
 
     sprintf(fullId, "%s/%s", parent, id);
-    corto_cleanpath(fullId, fullId);
+    corto_path_clean(fullId, fullId);
     sprintf(searchId, "%s/%s", scope, fullId);
-    corto_cleanpath(searchId, searchId);
+    corto_path_clean(searchId, searchId);
 
-    corto_object obj = corto_find(NULL, searchId, CORTO_FIND_DEFAULT);
+    corto_object obj = FIND(NULL, searchId);
     if (obj) corto_release(obj);
 
     /* Print columns */
@@ -248,7 +249,7 @@ static void cxsh_ls(char* arg) {
     if (!i) {
         printf("  no objects.\n\n");
     } else {
-        printf("  %d objects (%d %sin store%s, %d %smounted%s)\n\n", i, 
+        printf("  %d objects (%d %sin store%s, %d %smounted%s)\n\n", i,
             inStore, CORTO_GREEN, CORTO_NORMAL, i - inStore, CORTO_BLUE, CORTO_NORMAL);
     }
 
@@ -270,8 +271,6 @@ static void cxsh_cd(char* arg) {
             result[strlen(result) - 1] = '\0';
         }
 
-        corto_seterr(NULL);
-
         corto_resultIter iter;
         if (corto_select(result).from(scope).iter(&iter)) goto error;
 
@@ -280,7 +279,7 @@ static void cxsh_cd(char* arg) {
             corto_result *e = corto_iter_next(&iter);
 
             if (count) {
-                corto_seterr("more than one result returned by 'cd %s' (%s/%s/%s)", arg, scope, e->parent, e->id);
+                corto_throw("more than one result returned by 'cd %s' (%s/%s/%s)", arg, scope, e->parent, e->id);
                 goto error;
             }
             /* Use fully qualified path for scope */
@@ -290,18 +289,16 @@ static void cxsh_cd(char* arg) {
 
         if (count == 1) {
             strcpy(scope, result);
-            corto_cleanpath(scope, scope);
+            corto_path_clean(scope, scope);
         } else {
-            if (!corto_lasterr()) {
-                corto_seterr("'%s' did not match any objects", arg);
-            }
+            corto_throw("'%s' did not match any objects", arg);
             goto error;
         }
     }
 
     return;
 error:
-    corto_error("%s", corto_lasterr());
+    corto_raise();
 }
 
 corto_bool cxsh_readline(corto_string cmd) {
@@ -393,7 +390,7 @@ static int cxsh_show(char* object) {
     expr = cxsh_multiline(corto_strdup(object), 1);
     scope_o = corto_resolve(root_o, scope);
     if (!scope_o) {
-        corto_seterr("invalid scope '%s'", scope);
+        corto_throw("invalid scope '%s'", scope);
         return -1;
     }
 
@@ -588,24 +585,9 @@ static int cxsh_doCmd(int argc, char* argv[], char *cmd) {
     if (!strcmp(argv[0], "help")) {
         cxsh_help();
     } else {
-        corto_char *lastErr;
-
         if (cxsh_show(cmd)) {
-            if ((lastErr = corto_lasterr())) {
-                unsigned int location = 0;
-
-                /* If lastError starts with a line:column: indication, print an arrow */
-                if ((location = cxsh_getErrorLocation(lastErr))) {
-                    corto_id prompt;
-                    cxsh_prompt(FALSE, prompt);
-                    lastErr = strchr(lastErr, ':') + 2;
-                    corto_error("%*s^\n%s", location - 1 + (unsigned int)strlen(prompt), "", lastErr);
-                } else {
-                    corto_error("error: %s", lastErr);
-                }
-            } else {
-                corto_error("'%s' does not resolve to a valid object or expression", cmd);
-            }
+            corto_throw("'%s' is not a valid object or expression", cmd);
+            corto_raise();
         }
     }
 
@@ -975,10 +957,10 @@ static void cxsh_shell(void) {
     }
 }
 
-int shMain(int argc, char *argv[]) {
+int cortomain(int argc, char *argv[]) {
     int i, bs;
 
-    corto_errfmt("%k: %f:%l: %c: %m");
+    corto_log_fmt("%k: %f:%l: %c: %m");
 
     cxsh_color(SHELL_COLOR);
     printf("corto shell - type 'help' for instructions.\n");
@@ -1010,7 +992,6 @@ int shMain(int argc, char *argv[]) {
     /* Set scope to root */
     strcpy(scope, "/");
     cxsh_shell();
-    
+
     return 0;
 }
-
