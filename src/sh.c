@@ -971,7 +971,7 @@ int cortomain(int argc, char *argv[]) {
         if (!strcmp(argv[i], "-d")) {
             CORTO_DEBUG_ENABLED = TRUE;
         } else {
-            corto_load(argv[i], argc-i, &argv[i]);
+            corto_use(argv[i], argc-i, &argv[i]);
             break;
         }
     }
