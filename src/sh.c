@@ -25,7 +25,7 @@
 
 #include "shengine.h"
 
-#define FIND(parent, id) corto(parent, id, NULL, NULL, NULL, NULL, -1, 0)
+#define FIND(p, i) corto(CORTO_LOOKUP, {.parent = p, .id = i})
 #define CXSH_CMD_MAX (1024)
 
 #define CXSH_COL_NAME     (46)
@@ -646,7 +646,7 @@ corto_type cxsh_exprType(corto_string expr) {
         if (!scope_o) {
             return NULL;
         }
-        corto_call(parseLine, &result, expr, scope_o);
+        corto_invoke(parseLine, &result, expr, scope_o);
         corto_release(scope_o);
         corto_lasterr();
     }*/
