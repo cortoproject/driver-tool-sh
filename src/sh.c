@@ -723,7 +723,7 @@ corto_ll cxsh_shellExpand(int argc, const char* argv[], char *cmd) {
                     for (i = 0; i < corto_interface(t)->methods.length; i++) {
                         corto_object m = corto_interface(t)->methods.buffer[i];
                         corto_id method, sigName;
-                        corto_signatureName(corto_idof(m), sigName);
+                        corto_sig_name(corto_idof(m), sigName);
                         if (!fnmatch(filter, sigName, 0)) {
                             sprintf(method, "%s.%s(", objExpr, sigName);
                             corto_ll_append(result, corto_strdup(method));
