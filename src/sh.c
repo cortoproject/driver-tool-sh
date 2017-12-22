@@ -839,6 +839,7 @@ corto_uint32 cxsh_countSelect(char *expr) {
 
     return result;
 error:
+    corto_catch(); /* don't show errors while typing */
     return 0;
 }
 
