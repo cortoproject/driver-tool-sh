@@ -25,7 +25,7 @@
 
 #include "shengine.h"
 
-#define FIND(parent, id) corto(parent, id, NULL, NULL, NULL, NULL, -1, 0)
+#define FIND(p, i) corto(CORTO_LOOKUP, {.parent = p, .id = i})
 #define CXSH_CMD_MAX (1024)
 
 #define CXSH_COL_NAME     (46)
@@ -123,7 +123,7 @@ static char* cxsh_stateStr(corto_object o, char* buff) {
     buff[0] = '\0';
 
     /* Get state */
-    if (corto_checkState(o, CORTO_VALID)) {
+    if (corto_check_state(o, CORTO_VALID)) {
         strcpy(buff, "valid");
     } else {
         strcpy(buff, "invalid");
@@ -138,11 +138,11 @@ static char* cxsh_attrStr(corto_object o, char* buff) {
     *buff = '\0';
 
     first = TRUE;
-    if (corto_checkAttr(o, CORTO_ATTR_NAMED)) {
+    if (corto_check_attr(o, CORTO_ATTR_NAMED)) {
         strcat(buff, "named");
         first = FALSE;
     }
-    if (corto_checkAttr(o, CORTO_ATTR_WRITABLE)) {
+    if (corto_check_attr(o, CORTO_ATTR_WRITABLE)) {
         if (!first) {
             strcat(buff, "|writable");
         } else {
@@ -150,7 +150,7 @@ static char* cxsh_attrStr(corto_object o, char* buff) {
             first = FALSE;
         }
     }
-    if (corto_checkAttr(o, CORTO_ATTR_OBSERVABLE)) {
+    if (corto_check_attr(o, CORTO_ATTR_OBSERVABLE)) {
         if (!first) {
             strcat(buff, "|observable");
         } else {
@@ -158,7 +158,7 @@ static char* cxsh_attrStr(corto_object o, char* buff) {
             first = FALSE;
         }
     }
-    if (corto_checkAttr(o, CORTO_ATTR_PERSISTENT)) {
+    if (corto_check_attr(o, CORTO_ATTR_PERSISTENT)) {
         if (!first) {
             strcat(buff, "|persistent");
         } else {
@@ -408,7 +408,7 @@ static int cxsh_show(char* object) {
 
         /* Print object properties */
         if (o) {
-            if (corto_checkAttr(o, CORTO_ATTR_NAMED)) {
+            if (corto_check_attr(o, CORTO_ATTR_NAMED)) {
                 if (o == root_o) {
                     printf("%sname:%s         %s/%s\n",
                       INTERFACE_COLOR, CORTO_NORMAL, OBJECT_COLOR, CORTO_NORMAL);
@@ -428,10 +428,10 @@ static int cxsh_show(char* object) {
                       CORTO_NORMAL);
                 }
             }
-            if (corto_checkAttr(o, CORTO_ATTR_PERSISTENT)) {
-                corto_object owner = corto_ownerof(o);
+            if (corto_check_attr(o, CORTO_ATTR_PERSISTENT)) {
+                corto_object owner = corto_sourceof(o);
 
-                if (corto_checkState(o, CORTO_VALID)) {
+                if (corto_check_state(o, CORTO_VALID)) {
                     printf("%sowner:%s        %s%s\n",
                         INTERFACE_COLOR,
                         OBJECT_COLOR,
@@ -439,7 +439,7 @@ static int cxsh_show(char* object) {
                         CORTO_NORMAL);
                 }
             }
-            if (corto_checkState(o, CORTO_VALID)) {
+            if (corto_check_state(o, CORTO_VALID)) {
                 printf("%sstate:%s        %s%s%s\n", INTERFACE_COLOR, CORTO_NORMAL, META_COLOR, cxsh_stateStr(o, state), CORTO_NORMAL);
             } else {
                 printf("%sstate:        %s%s\n", CORTO_RED, cxsh_stateStr(o, state), CORTO_NORMAL);
@@ -475,7 +475,7 @@ static int cxsh_show(char* object) {
         }
 
         if (o) {
-            if (corto_class_instanceof(corto_type_o, o) && corto_checkState(o, CORTO_VALID)) {
+            if (corto_class_instanceof(corto_type_o, o) && corto_check_state(o, CORTO_VALID)) {
                 s.access = CORTO_LOCAL | CORTO_READONLY | CORTO_PRIVATE | CORTO_HIDDEN;
                 s.accessKind = CORTO_NOT;
                 s.aliasAction = CORTO_WALK_ALIAS_FOLLOW;
@@ -646,7 +646,7 @@ corto_type cxsh_exprType(corto_string expr) {
         if (!scope_o) {
             return NULL;
         }
-        corto_call(parseLine, &result, expr, scope_o);
+        corto_invoke(parseLine, &result, expr, scope_o);
         corto_release(scope_o);
         corto_lasterr();
     }*/
@@ -723,7 +723,7 @@ corto_ll cxsh_shellExpand(int argc, const char* argv[], char *cmd) {
                     for (i = 0; i < corto_interface(t)->methods.length; i++) {
                         corto_object m = corto_interface(t)->methods.buffer[i];
                         corto_id method, sigName;
-                        corto_signatureName(corto_idof(m), sigName);
+                        corto_sig_name(corto_idof(m), sigName);
                         if (!fnmatch(filter, sigName, 0)) {
                             sprintf(method, "%s.%s(", objExpr, sigName);
                             corto_ll_append(result, corto_strdup(method));
@@ -839,6 +839,7 @@ corto_uint32 cxsh_countSelect(char *expr) {
 
     return result;
 error:
+    corto_catch(); /* don't show errors while typing */
     return 0;
 }
 
