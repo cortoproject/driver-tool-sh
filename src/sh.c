@@ -969,12 +969,7 @@ int cortomain(int argc, char *argv[]) {
 
     /* Parse arguments */
     for(i=1; i<argc; i++) {
-        if (!strcmp(argv[i], "-d")) {
-            CORTO_DEBUG_ENABLED = TRUE;
-        } else {
-            corto_use(argv[i], argc-i, &argv[i]);
-            break;
-        }
+        corto_use(argv[i], 0, NULL);
     }
 
     for (i = 0; i < 3; i ++) {
