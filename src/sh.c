@@ -608,7 +608,7 @@ static corto_int16 cxsh_ser_member(
   void *userData)
 {
     cxsh_memberSer_t *data = userData;
-    corto_string m = corto_idof(info->is.member.t);
+    corto_string m = corto_idof(info->is.member.member);
     CORTO_UNUSED(s);
 
     if (m && !fnmatch(data->filter, m, 0)) {
