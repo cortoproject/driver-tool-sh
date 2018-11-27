@@ -1,5 +1,5 @@
 {
-    "id": "driver/tool/sh",
+    "id": "driver.tool.sh",
     "type": "package",
     "value": {
         "author": "Sander Mertens",
