@@ -22,11 +22,11 @@
 #ifndef CORTO_SHELLENGINE_H_
 #define CORTO_SHELLENGINE_H_
 
-#include <corto/corto.h>
+#include <corto>
 
 typedef void (*corto_printCallback) (const char *cmd);
 typedef int (*corto_commandCallback) (int argc, const char* argv[], char *cmd);
-typedef corto_ll (*corto_expandCallback)(int argc, const char *argv[], char *cmd);
+typedef ut_ll (*corto_expandCallback)(int argc, const char *argv[], char *cmd);
 
 void corto_shellEngine_prompt (const char* fmt, ...);
 int corto_shellEngine_readInput(
